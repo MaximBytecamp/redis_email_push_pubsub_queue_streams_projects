@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Email Mailing Service</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>Email Mailing Service</h1>
+        <p>Импорт получателей, SMTP-рассылки, Redis Queue, Pub/Sub и Streams</p>
+      </div>
+      <div class="health" id="healthStatus">Проверка Redis...</div>
+    </header>
+
+    <main class="layout">
+      <section class="panel controls">
+        <div class="section-title">
+          <h2>Импорт получателей</h2>
+          <span class="hint">CSV или XLSX</span>
+        </div>
+        <form id="importForm" class="form">
+          <label>
+            <span>Файл</span>
+            <input name="file" type="file" accept=".csv,.xlsx" required />
+          </label>
+          <button type="submit">Загрузить в очередь</button>
+        </form>
+        <div class="result" id="importResult"></div>
+
+        <div class="section-title split">
+          <h2>Новая рассылка</h2>
+          <div class="segmented" role="tablist">
+            <button type="button" class="active" data-mode="manual">Email</button>
+            <button type="button" data-mode="group">Группа</button>
+          </div>
+        </div>
+        <form id="mailingForm" class="form">
+          <label>
+            <span>Название</span>
+            <input name="title" required placeholder="Напоминание о практике" />
+          </label>
+          <label>
+            <span>Тема письма</span>
+            <input name="subject" required placeholder="Сдача практической работы" />
+          </label>
+          <label>
+            <span>Текст письма</span>
+            <textarea name="body" rows="5" required placeholder="Здравствуйте! Не забудьте сдать практическую работу."></textarea>
+          </label>
+          <label id="manualRecipients">
+            <span>Получатели вручную</span>
+            <textarea name="recipients" rows="3" placeholder="ivan@example.com, anna@example.com"></textarea>
+          </label>
+          <label id="groupRecipients" class="hidden">
+            <span>Группа</span>
+            <input name="group" placeholder="РПО-1" />
+          </label>
+          <button type="submit">Создать и отправить</button>
+        </form>
+        <div class="result" id="mailingResult"></div>
+      </section>
+
+      <section class="workspace">
+        <div class="stats-grid">
+          <article class="metric">
+            <span>Получатели</span>
+            <strong id="recipientCount">0</strong>
+          </article>
+          <article class="metric">
+            <span>Рассылки</span>
+            <strong id="mailingCount">0</strong>
+          </article>
+          <article class="metric">
+            <span>Отправлено</span>
+            <strong id="sentCount">0</strong>
+          </article>
+          <article class="metric">
+            <span>Ошибки</span>
+            <strong id="failedCount">0</strong>
+          </article>
+        </div>
+
+        <section class="panel">
+          <div class="section-title">
+            <h2>Рассылки</h2>
+            <button type="button" class="secondary" id="refreshButton">Обновить</button>
+          </div>
+          <div id="mailingsList" class="mailings-list"></div>
+        </section>
+
+        <section class="panel two-column">
+          <div>
+            <div class="section-title">
+              <h2>Письма рассылки</h2>
+              <span class="hint" id="selectedMailingLabel">Выберите рассылку</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Получатель</th>
+                    <th>Статус</th>
+                    <th>Ошибка</th>
+                  </tr>
+                </thead>
+                <tbody id="emailsTable"></tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <div class="section-title">
+              <h2>Live</h2>
+              <span class="hint">Redis Pub/Sub</span>
+            </div>
+            <div id="notifications" class="notifications"></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-title">
+            <h2>История событий</h2>
+            <span class="hint">Redis Streams</span>
+          </div>
+          <div id="eventsList" class="events-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="section-title">
+            <h2>Получатели</h2>
+            <span class="hint">База данных</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Имя</th>
+                  <th>Email</th>
+                  <th>Группа</th>
+                </tr>
+              </thead>
+              <tbody id="recipientsTable"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
