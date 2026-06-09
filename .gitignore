@@ -1,1 +1,40 @@
-/.env
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.mailpit
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local runtime data
+data/
+*.sqlite
+*.sqlite3
+*.db
+
+# Local Docker overrides
+docker-compose.docker-run.yml
+docker-compose.override.yml
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
