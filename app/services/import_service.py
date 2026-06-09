@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 from uuid import uuid4
 
@@ -67,9 +68,9 @@ def process_import_task(db: Session, import_id: int) -> RecipientImport | None:
         update(RecipientImport)
         .where(
             RecipientImport.id == import_id,
-            RecipientImport.status.in_([IMPORT_STATUS_QUEUED, IMPORT_STATUS_PROCESSING]),
+            RecipientImport.status == IMPORT_STATUS_QUEUED,
         )
-        .values(status=IMPORT_STATUS_PROCESSING, attempts=RecipientImport.attempts + 1, error=None, updated_at=now_utc())
+        .values(status=IMPORT_STATUS_PROCESSING, error=None, updated_at=now_utc())
     )
     db.commit()
     if claim.rowcount == 0:
@@ -82,9 +83,13 @@ def process_import_task(db: Session, import_id: int) -> RecipientImport | None:
     seen: set[str] = set()
     total_rows = valid_emails = invalid_emails = duplicates = 0
     batch: dict[str, dict] = {}
+    started_at = time.monotonic()
 
     try:
         for row in parse_recipients_file(import_task.file_path):
+            if time.monotonic() - started_at > settings.watchdog_stale_seconds:
+                raise TimeoutError(f"Импорт не завершился за {settings.watchdog_stale_seconds} секунд")
+
             total_rows += 1
             raw_email = str(row.get("email", "")).strip().lower()
             name = str(row.get("name", "")).strip() or None
@@ -114,6 +119,9 @@ def process_import_task(db: Session, import_id: int) -> RecipientImport | None:
         duplicates += len(batch) - inserted
 
         import_task = db.get(RecipientImport, import_id)
+        if import_task.status == IMPORT_STATUS_FAILED:
+            return import_task
+
         import_task.total_rows = total_rows
         import_task.valid_emails = valid_emails
         import_task.invalid_emails = invalid_emails

@@ -1,0 +1,77 @@
+services:
+  redis:
+    image: redis:7
+    ports:
+      - "6380:6379"
+
+  smtp:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  backend:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: sqlite:////app/data/email_service.db
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - .:/app
+      - app_data:/app/data
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+      - smtp
+
+  import_worker:
+    build: .
+    command: python -m app.workers.import_worker
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: sqlite:////app/data/email_service.db
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - .:/app
+      - app_data:/app/data
+    depends_on:
+      - redis
+      - backend
+
+  email_worker:
+    build: .
+    command: python -m app.workers.email_worker
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: sqlite:////app/data/email_service.db
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - .:/app
+      - app_data:/app/data
+    depends_on:
+      - redis
+      - backend
+      - smtp
+
+  watchdog_worker:
+    build: .
+    command: python -m app.workers.watchdog_worker
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: sqlite:////app/data/email_service.db
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - .:/app
+      - app_data:/app/data
+    depends_on:
+      - redis
+      - backend
+
+volumes:
+  app_data:

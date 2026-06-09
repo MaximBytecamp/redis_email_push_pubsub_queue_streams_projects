@@ -212,4 +212,4 @@ function setupNotifications() {
 setupForms();
 setupNotifications();
 refreshAll();
-setInterval(refreshAll, 10000);
+setInterval(refreshAll, 5000);

@@ -53,5 +53,6 @@ def health() -> dict:
 
 
 app.include_router(recipients.router)
+app.include_router(imports.router)
 app.include_router(mailings.router)
 app.include_router(events.router)

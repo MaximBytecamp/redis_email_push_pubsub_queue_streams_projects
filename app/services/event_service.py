@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 
+from app.config import settings
 from app.redis_client import EVENTS_STREAM, redis_client
 
 
@@ -9,7 +10,7 @@ def write_event(event: str, **data: object) -> str:
         "created_at": datetime.now(timezone.utc).isoformat(),
         **{key: "" if value is None else str(value) for key, value in data.items()},
     }
-    return redis_client.xadd(EVENTS_STREAM, payload)
+    return redis_client.xadd(EVENTS_STREAM, payload, maxlen=settings.events_stream_maxlen, approximate=True)
 
 
 def read_events(limit: int = 100, mailing_id: int | None = None) -> list[dict]:
