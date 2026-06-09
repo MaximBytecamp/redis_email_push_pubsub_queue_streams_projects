@@ -1,0 +1,5 @@
+name,email,group
+Иван Петров,ivan@example.com,РПО-1
+Анна Смирнова,anna@example.com,РПО-2
+Петр Иванов,wrong-email,РПО-1
+Иван Дубль,ivan@example.com,РПО-1
